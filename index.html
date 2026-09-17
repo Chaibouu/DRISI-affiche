@@ -436,7 +436,7 @@
         </div>
 
         <div class="footer-signature">
-            Développé par <span class="signature">Chaibouu</span>
+            Développé par <span class="signature"><a href="https://github.com/chaibouu" target="_blank">Chaibouu</a></span>
         </div>
     </div>
 
@@ -466,11 +466,11 @@
         let posterImage = null;
         let isPosterLoaded = false;
 
-        // Zone photo — repli calibré sur le carré blanc de affiche.jpg
+        // Zone photo — hauteur inchangée, largeur seule ajustée
         let photoArea = {
-            x: 0.3400,
+            x: 0.3480,
             y: 0.4720,
-            width: 0.3200,
+            width: 0.3040,
             height: 0.3200,
             borderRadius: 0.0260
         };
@@ -480,6 +480,7 @@
         let adjustStartX = 0;
         let adjustStartY = 0;
         let previewAreaHeight = 280;
+        let previewAreaWidth = 280;
 
         function roundRectPath(context, x, y, w, h, r) {
             const radius = Math.min(r, w / 2, h / 2);
@@ -545,21 +546,15 @@
 
             const topY = bodyRows[0].y;
             const bottomY = bodyRows[bodyRows.length - 1].y;
-            const midIndex = Math.floor(bodyRows.length / 2);
-            const refRow = bodyRows[midIndex];
 
-            let minX = refRow.left;
-            let maxX = refRow.right;
-            let minY = topY;
-            let maxY = bottomY;
-
-            // Moyenne des bords sur les lignes centrales (plus stable que 1 seule ligne)
             const coreRows = bodyRows.slice(
                 Math.floor(bodyRows.length * 0.25),
                 Math.floor(bodyRows.length * 0.75)
             );
-            minX = Math.round(coreRows.reduce((s, r) => s + r.left, 0) / coreRows.length);
-            maxX = Math.round(coreRows.reduce((s, r) => s + r.right, 0) / coreRows.length);
+            let minX = Math.round(coreRows.reduce((s, r) => s + r.left, 0) / coreRows.length);
+            let maxX = Math.round(coreRows.reduce((s, r) => s + r.right, 0) / coreRows.length);
+            let minY = topY;
+            let maxY = bottomY;
 
             const rawW = maxX - minX;
             const rawH = maxY - minY;
@@ -567,25 +562,24 @@
             const cx = (minX + maxX) / 2;
             const cy = (minY + maxY) / 2;
 
-            minX = Math.round(cx - size / 2);
+            // Hauteur & position verticale — logique d'origine (ne pas modifier)
             minY = Math.round(cy - size / 2);
-            maxX = minX + size;
             maxY = minY + size;
-
-            // Retrait minimal (1 px) pour les coins anti-aliasés
-            minX += 1;
             minY += 1;
-            maxX -= 1;
             maxY -= 1;
+            const boxH = maxY - minY;
 
-            const boxW = maxX - minX;
+            // Largeur seule — réduite ~5 % par rapport au carré d'origine
+            const widthScale = 0.952;
+            const boxW = Math.round(size * widthScale);
+            minX = Math.round(cx - boxW / 2);
 
             return {
                 x: minX / sampleWidth,
                 y: minY / sampleHeight,
                 width: boxW / sampleWidth,
-                height: boxW / sampleWidth,
-                borderRadius: boxW / sampleWidth * 0.082
+                height: boxH / sampleHeight,
+                borderRadius: Math.min(boxW, boxH) / sampleWidth * 0.082
             };
         }
 
@@ -630,9 +624,8 @@
             let offsetY = adjustment.offsetY;
 
             if (!previewMode) {
-                const scaleRatio = height / previewAreaHeight;
-                offsetX *= scaleRatio;
-                offsetY *= scaleRatio;
+                offsetX *= width / previewAreaWidth;
+                offsetY *= height / previewAreaHeight;
             }
 
             const drawX = x + (width - drawWidth) / 2 + offsetX;
@@ -656,6 +649,7 @@
 
             const aspectRatio = photoArea.width / photoArea.height;
             const previewHeight = containerWidth / aspectRatio;
+            previewAreaWidth = containerWidth;
             previewAreaHeight = previewHeight;
 
             adjustPreviewCanvas.width = containerWidth;
