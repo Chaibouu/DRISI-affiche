@@ -571,7 +571,7 @@
             const boxH = maxY - minY;
 
             // Largeur seule — réduite ~5 % par rapport au carré d'origine
-            const widthScale = 0.952;
+            const widthScale = 1.20;
             const boxW = Math.round(size * widthScale);
             minX = Math.round(cx - boxW / 2);
 
@@ -639,7 +639,7 @@
             targetCtx.fillStyle = '#ffffff';
             targetCtx.fillRect(x, y, width, height);
 
-            targetCtx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+            targetCtx.drawImage(img, drawX, drawY, drawWidth + 2, drawHeight);
             targetCtx.restore();
         }
 
